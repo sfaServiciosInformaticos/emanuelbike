@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguimiento de Reparación - Bicicletería</title>
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+        }
+
+        h1, h2, h3 {
+            margin-top: 0;
+        }
+
+        main {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        /* Estilos específicos para la vista de cliente */
+        .search-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .search-section form {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .ticket-info {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            border-left: 4px solid #3498db;
+        }
+
+        .not-found {
+            background-color: #fdecea;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            border-left: 4px solid #e74c3c;
+            text-align: center;
+        }
+
+        /* Estados para cliente */
+        .status-pending {
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        .status-in-progress {
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .status-completed {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .status-cancelled {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1rem 0;
+            background-color: #2c3e50;
+            color: white;
+            margin-top: 2rem;
+        }
+
+        /* Timeline de estados */
+        .status-timeline ul {
+            list-style-type: none;
+            padding: 0;
+            position: relative;
+        }
+
+        .status-timeline ul:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 10px;
+            width: 2px;
+            background: #3498db;
+        }
+
+        .status-timeline li {
+            padding-left: 30px;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .status-timeline li:before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3498db;
+            border: 3px solid white;
+        }
+
+        .status-timeline li span {
+            font-weight: bold;
+            display: block;
+        }
+
+        .status-timeline li p {
+            margin: 0.25rem 0 0;
+        }
+
+        .ticket-details p {
+            margin: 0.5rem 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Seguimiento de Reparación</h1>
+    </header>
+    
+    <main>
+        <section class="search-section">
+            <h2>Consulta el estado de tu bicicleta</h2>
+            <form id="search-form">
+                <div class="form-group">
+                    <label for="ticket-number">Número de Seguimiento:</label>
+                    <input type="text" id="ticket-number" placeholder="Ej: BIC-12345" required>
+                </div>
+                <button type="submit">Buscar</button>
+            </form>
+        </section>
+        
+        <section class="ticket-info" id="ticket-info" style="display: none;">
+            <h2>Información de tu Reparación</h2>
+            <div class="ticket-details">
+                <p><strong>Número de Ticket:</strong> <span id="display-ticket-number"></span></p>
+                <p><strong>Cliente:</strong> <span id="display-client-name"></span></p>
+                <p><strong>Bicicleta:</strong> <span id="display-bike-type"></span></p>
+                <p><strong>Problema reportado:</strong> <span id="display-problem"></span></p>
+                <p><strong>Estado actual:</strong> <span id="display-status"></span></p>
+                <p><strong>Última actualización:</strong> <span id="display-last-update"></span></p>
+            </div>
+            
+            <div class="status-timeline">
+                <h3>Historial de Estados</h3>
+                <ul id="status-history">
+                    <!-- Los estados se cargarán aquí dinámicamente -->
+                </ul>
+            </div>
+        </section>
+        
+        <section class="not-found" id="not-found" style="display: none;">
+            <h2>Ticket no encontrado</h2>
+            <p>El número de seguimiento ingresado no corresponde a ningún ticket activo.</p>
+            <p>Por favor, verifica el número o contacta a la bicicletería.</p>
+        </section>
+    </main>
+    
+    <footer>
+        <p>Bicicletería &copy; 2023 - Contacto: info@bicicleteria.com</p>
+    </footer>
+    
+    <script>
+        // Función para generar números de ticket únicos (compartida con panel)
+        function generarNumeroTicket() {
+            const prefix = 'BIC-';
+            const randomNum = Math.floor(10000 + Math.random() * 90000);
+            return prefix + randomNum;
+        }
+
+        // Función para formatear fecha
+        function formatFecha(fecha) {
+            const opciones = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            };
+            return new Date(fecha).toLocaleDateString('es-ES', opciones);
+        }
+
+        // Almacenamiento local para los tickets
+        function obtenerTickets() {
+            const tickets = localStorage.getItem('bicicleteriaTickets');
+            return tickets ? JSON.parse(tickets) : [];
+        }
+
+        // Lógica de seguimiento del cliente
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchForm = document.getElementById('search-form');
+            const ticketInfoSection = document.getElementById('ticket-info');
+            const notFoundSection = document.getElementById('not-found');
+            const displayTicketNumber = document.getElementById('display-ticket-number');
+            const displayClientName = document.getElementById('display-client-name');
+            const displayBikeType = document.getElementById('display-bike-type');
+            const displayProblem = document.getElementById('display-problem');
+            const displayStatus = document.getElementById('display-status');
+            const displayLastUpdate = document.getElementById('display-last-update');
+            const statusHistory = document.getElementById('status-history');
+            
+            // Buscar ticket
+            searchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const ticketNumber = document.getElementById('ticket-number').value.trim();
+                const tickets = obtenerTickets();
+                const ticket = tickets.find(t => t.id === ticketNumber);
+                
+                if (ticket) {
+                    // Mostrar información del ticket
+                    displayTicketNumber.textContent = ticket.id;
+                    displayClientName.textContent = ticket.cliente;
+                    displayBikeType.textContent = ticket.bicicleta;
+                    displayProblem.textContent = ticket.problema;
+                    
+                    // Estado con clase CSS correspondiente
+                    displayStatus.textContent = ticket.estado;
+                    displayStatus.className = 'status-' + ticket.estado.toLowerCase().replace(' ', '-');
+                    
+                    // Última actualización
+                    const lastUpdate = ticket.historial[ticket.historial.length - 1];
+                    displayLastUpdate.textContent = formatFecha(lastUpdate.fecha);
+                    
+                    // Historial de estados
+                    statusHistory.innerHTML = '';
+                    ticket.historial.forEach(item => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            <span>${item.estado}</span>
+                            <p>${item.notas}</p>
+                            <small>${formatFecha(item.fecha)}</small>
+                        `;
+                        statusHistory.appendChild(li);
+                    });
+                    
+                    ticketInfoSection.style.display = 'block';
+                    notFoundSection.style.display = 'none';
+                } else {
+                    ticketInfoSection.style.display = 'none';
+                    notFoundSection.style.display = 'block';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
