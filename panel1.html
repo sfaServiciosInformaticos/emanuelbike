@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emanuelbike - Sistema de Tickets</title>
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+        }
+
+        h1, h2, h3 {
+            margin-top: 0;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        /* Estilos específicos para el panel de control */
+        .form-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .tickets-list {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .ticket-section {
+            background-color: #e8f4fc;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            border-left: 4px solid #3498db;
+        }
+
+        /* Estilos para tickets */
+        .ticket-info {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .ticket-info p {
+            margin: 0.5rem 0;
+        }
+
+        /* Tabla de tickets */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #2c3e50;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        /* Botones */
+        #print-ticket {
+            background-color: #27ae60;
+            margin-right: 1rem;
+        }
+
+        #print-ticket:hover {
+            background-color: #219653;
+        }
+
+        /* Estados */
+        .status-pending {
+            color: #f39c12;
+        }
+
+        .status-in-progress {
+            color: #3498db;
+        }
+
+        .status-completed {
+            color: #27ae60;
+        }
+
+        .status-cancelled {
+            color: #e74c3c;
+        }
+
+        /* Botones de acción */
+        .action-btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.85rem;
+            margin-right: 0.5rem;
+        }
+
+        .edit-btn {
+            background-color: #f39c12;
+        }
+
+        .edit-btn:hover {
+            background-color: #e67e22;
+        }
+
+        .complete-btn {
+            background-color: #27ae60;
+        }
+
+        .complete-btn:hover {
+            background-color: #219653;
+        }
+
+        .cancel-btn {
+            background-color: #e74c3c;
+        }
+
+        .cancel-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .delete-btn {
+            background-color: #e74c3c;
+        }
+
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+
+        /* Checkbox para selección */
+        .select-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        /* Botones de acción masiva */
+        .bulk-actions {
+            margin: 1rem 0;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .bulk-btn {
+            padding: 0.5rem 1rem;
+        }
+
+        /* Modal de confirmación */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .modal-cancel {
+            background-color: #95a5a6;
+        }
+
+        .modal-cancel:hover {
+            background-color: #7f8c8d;
+        }
+
+        .modal-confirm {
+            background-color: #e74c3c;
+        }
+
+        .modal-confirm:hover {
+            background-color: #c0392b;
+        }
+
+        /* Modo cliente */
+        .client-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .client-view {
+            display: none;
+        }
+
+        .admin-view {
+            display: none;
+        }
+
+        .view-active {
+            display: block;
+        }
+
+        /* Nav */
+        .nav-tabs {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            margin: 0 0 2rem 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .nav-tabs li {
+            margin-right: 1rem;
+        }
+
+        .nav-tabs button {
+            background: none;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            color: #3498db;
+            border-bottom: 2px solid transparent;
+        }
+
+        .nav-tabs button.active {
+            border-bottom: 2px solid #3498db;
+            font-weight: bold;
+        }
+
+        /* Login */
+        .login-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin: 2rem auto;
+            max-width: 400px;
+        }
+
+        /* Notificaciones */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem;
+            border-radius: 4px;
+            color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+        }
+
+        .notification.success {
+            background-color: #27ae60;
+        }
+
+        .notification.error {
+            background-color: #e74c3c;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .bulk-actions {
+                flex-direction: column;
+            }
+            
+            .action-btn {
+                margin-bottom: 0.5rem;
+                display: block;
+                width: 100%;
+            }
+            
+            table {
+                font-size: 0.9rem;
+            }
+            
+            th, td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Notificaciones -->
+    <div id="notification" class="notification"></div>
+
+    <header>
+        <h1>Emanuelbike - Sistema de Tickets</h1>
+    </header>
+    
+    <main>
+        <!-- Vista Login (solo se muestra inicialmente) -->
+        <section id="login-view" class="login-section">
+            <h2>Acceso al Sistema</h2>
+            <div class="form-group">
+                <label for="login-type">Tipo de Acceso:</label>
+                <select id="login-type">
+                    <option value="client">Consulta de Cliente</option>
+                    <option value="admin">Panel de Administración</option>
+                </select>
+            </div>
+            <div class="form-group" id="password-group" style="display: none;">
+                <label for="password">Contraseña:</label>
+                <input type="password" id="password" placeholder="Ingresa la contraseña de administrador">
+            </div>
+            <button id="login-btn">Continuar</button>
+        </section>
+        
+        <!-- Vista Cliente -->
+        <section id="client-view" class="client-view">
+            <div class="client-section">
+                <h2>Consulta el estado de tu ticket</h2>
+                <div class="form-group">
+                    <label for="consulta-numero">Número de Ticket:</label>
+                    <input type="text" id="consulta-numero" placeholder="Ej: BIC-0001">
+                </div>
+                <button id="consultar-ticket">Consultar</button>
+                <button id="client-logout" style="margin-left: 1rem; background-color: #95a5a6;">Volver</button>
+            </div>
+            
+            <div id="resultado-consulta" class="ticket-section" style="display: none;">
+                <h2>Estado de tu Ticket</h2>
+                <div class="ticket-info">
+                    <p><strong>Número de Ticket:</strong> <span id="consulta-ticket-number"></span></p>
+                    <p><strong>Cliente:</strong> <span id="consulta-ticket-client"></span></p>
+                    <p><strong>Teléfono:</strong> <span id="consulta-ticket-phone"></span></p>
+                    <p><strong>Bicicleta:</strong> <span id="consulta-ticket-bike"></span></p>
+                    <p><strong>Estado:</strong> <span id="consulta-ticket-status"></span></p>
+                    <p><strong>Problema:</strong> <span id="consulta-ticket-problem"></span></p>
+                    <p><strong>Última actualización:</strong> <span id="consulta-ticket-update"></span></p>
+                </div>
+            </div>
+            
+            <div id="no-encontrado" class="ticket-section" style="display: none; background-color: #fde8e8; border-left-color: #e74c3c;">
+                <h2>Ticket no encontrado</h2>
+                <p>El número de ticket que ingresaste no existe en nuestro sistema. Por favor verifica el número e intenta nuevamente.</p>
+                <p>Si crees que esto es un error, contáctanos directamente.</p>
+            </div>
+        </section>
+        
+        <!-- Vista Administrador -->
+        <section id="admin-view" class="admin-view">
+            <button id="admin-logout" style="margin-bottom: 1rem; background-color: #95a5a6;">Cerrar Sesión</button>
+            
+            <section class="form-section">
+                <h2>Generar Nuevo Ticket</h2>
+                <form id="ticket-form">
+                    <div class="form-group">
+                        <label for="nombre">Nombre del Cliente:</label>
+                        <input type="text" id="nombre" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="telefono">Teléfono:</label>
+                        <input type="tel" id="telefono" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="bicicleta">Tipo de Bicicleta:</label>
+                        <input type="text" id="bicicleta" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="problema">Descripción del Problema:</label>
+                        <textarea id="problema" rows="4" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="prioridad">Prioridad:</label>
+                        <select id="prioridad">
+                            <option value="normal">Normal</option>
+                            <option value="urgente">Urgente</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit">Generar Ticket</button>
+                </form>
+            </section>
+            
+            <section class="ticket-section" id="generated-ticket" style="display: none;">
+                <h2>Ticket Generado</h2>
+                <div class="ticket-info">
+                    <p><strong>Número de Seguimiento:</strong> <span id="ticket-number"></span></p>
+                    <p><strong>Cliente:</strong> <span id="ticket-client"></span></p>
+                    <p><strong>Teléfono:</strong> <span id="ticket-phone"></span></p>
+                    <p><strong>Estado:</strong> <span id="ticket-status">En revisión</span></p>
+                    <p><strong>Problema:</strong> <span id="ticket-problem"></span></p>
+                </div>
+                <button id="print-ticket">Imprimir Ticket</button>
+                <button id="new-ticket">Nuevo Ticket</button>
+            </section>
+            
+            <section class="tickets-list">
+                <h2>Tickets Activos</h2>
+                
+                <div class="bulk-actions" id="bulk-actions" style="display: none;">
+                    <button id="delete-selected" class="bulk-btn delete-btn">Eliminar seleccionados</button>
+                    <button id="cancel-selection" class="bulk-btn">Cancelar selección</button>
+                </div>
+                
+                <table id="tickets-table">
+                    <thead>
+                        <tr>
+                            <th width="30px"><input type="checkbox" id="select-all"></th>
+                            <th>N° Ticket</th>
+                            <th>Cliente</th>
+                            <th>Bicicleta</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Los tickets se cargarán aquí dinámicamente -->
+                    </tbody>
+                </table>
+            </section>
+        </section>
+    </main>
+
+    <!-- Modal de confirmación -->
+    <div id="confirm-modal" class="modal">
+        <div class="modal-content">
+            <h3>Confirmar eliminación</h3>
+            <p id="modal-message">¿Estás seguro que deseas eliminar los tickets seleccionados?</p>
+            <div class="modal-actions">
+                <button id="modal-cancel" class="modal-cancel">Cancelar</button>
+                <button id="modal-confirm" class="modal-confirm">Eliminar</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Configuración del sistema
+        const CONFIG = {
+            PASSWORD: 'admin123', // Contraseña simple para el panel de admin
+            TICKET_PREFIX: 'BIC-',
+            STORAGE_KEY: 'emanuelbikeTickets_v2'
+        };
+
+        // Función para mostrar notificaciones
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
+        }
+
+        // Función para generar números de ticket secuenciales
+        function generarNumeroTicket(tickets) {
+            const lastTicket = tickets.reduce((max, ticket) => {
+                const num = parseInt(ticket.id.replace(CONFIG.TICKET_PREFIX, ''));
+                return num > max ? num : max;
+            }, 0);
+            
+            const nextNumber = lastTicket + 1;
+            return CONFIG.TICKET_PREFIX + nextNumber.toString().padStart(4, '0');
+        }
+
+        // Función para formatear fecha
+        function formatFecha(fecha) {
+            const opciones = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            };
+            return new Date(fecha).toLocaleDateString('es-ES', opciones);
+        }
+
+        // Almacenamiento local para los tickets con verificación
+        function guardarTickets(tickets) {
+            try {
+                localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(tickets));
+                return true;
+            } catch (e) {
+                console.error('Error al guardar tickets:', e);
+                showNotification('Error al guardar los datos. Intenta nuevamente.', 'error');
+                return false;
+            }
+        }
+
+        function obtenerTickets() {
+            try {
+                const tickets = localStorage.getItem(CONFIG.STORAGE_KEY);
+                return tickets ? JSON.parse(tickets) : [];
+            } catch (e) {
+                console.error('Error al leer tickets:', e);
+                showNotification('Error al cargar los datos. Recarga la página.', 'error');
+                return [];
+            }
+        }
+
+        // Lógica del panel de control
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos de la vista login
+            const loginView = document.getElementById('login-view');
+            const loginType = document.getElementById('login-type');
+            const passwordGroup = document.getElementById('password-group');
+            const passwordInput = document.getElementById('password');
+            const loginBtn = document.getElementById('login-btn');
+            
+            // Elementos de la vista cliente
+            const clientView = document.getElementById('client-view');
+            const consultaNumero = document.getElementById('consulta-numero');
+            const consultarBtn = document.getElementById('consultar-ticket');
+            const clientLogoutBtn = document.getElementById('client-logout');
+            const resultadoConsulta = document.getElementById('resultado-consulta');
+            const noEncontrado = document.getElementById('no-encontrado');
+            
+            // Elementos de la vista administrador
+            const adminView = document.getElementById('admin-view');
+            const adminLogoutBtn = document.getElementById('admin-logout');
+            const ticketForm = document.getElementById('ticket-form');
+            const generatedTicketSection = document.getElementById('generated-ticket');
+            const ticketNumberSpan = document.getElementById('ticket-number');
+            const ticketClientSpan = document.getElementById('ticket-client');
+            const ticketPhoneSpan = document.getElementById('ticket-phone');
+            const ticketProblemSpan = document.getElementById('ticket-problem');
+            const printBtn = document.getElementById('print-ticket');
+            const newTicketBtn = document.getElementById('new-ticket');
+            const ticketsTable = document.getElementById('tickets-table').getElementsByTagName('tbody')[0];
+            const selectAllCheckbox = document.getElementById('select-all');
+            const bulkActions = document.getElementById('bulk-actions');
+            const deleteSelectedBtn = document.getElementById('delete-selected');
+            const cancelSelectionBtn = document.getElementById('cancel-selection');
+            const modal = document.getElementById('confirm-modal');
+            const modalCancel = document.getElementById('modal-cancel');
+            const modalConfirm = document.getElementById('modal-confirm');
+            const modalMessage = document.getElementById('modal-message');
+            
+            let tickets = obtenerTickets();
+            let selectedTickets = [];
+            
+            // Mostrar vista inicial (login)
+            loginView.style.display = 'block';
+            clientView.style.display = 'none';
+            adminView.style.display = 'none';
+            
+            // Mostrar/ocultar campo de contraseña según el tipo de acceso
+            loginType.addEventListener('change', function() {
+                passwordGroup.style.display = this.value === 'admin' ? 'block' : 'none';
+            });
+            
+            // Manejar el login
+            loginBtn.addEventListener('click', function() {
+                if (loginType.value === 'admin' && passwordInput.value !== CONFIG.PASSWORD) {
+                    showNotification('Contraseña incorrecta', 'error');
+                    return;
+                }
+                
+                loginView.style.display = 'none';
+                
+                if (loginType.value === 'client') {
+                    clientView.style.display = 'block';
+                    adminView.style.display = 'none';
+                } else {
+                    clientView.style.display = 'none';
+                    adminView.style.display = 'block';
+                    actualizarTablaTickets();
+                }
+            });
+            
+            // Logout desde cliente
+            clientLogoutBtn.addEventListener('click', function() {
+                clientView.style.display = 'none';
+                loginView.style.display = 'block';
+                resultadoConsulta.style.display = 'none';
+                noEncontrado.style.display = 'none';
+                consultaNumero.value = '';
+            });
+            
+            // Logout desde admin
+            adminLogoutBtn.addEventListener('click', function() {
+                adminView.style.display = 'none';
+                loginView.style.display = 'block';
+                passwordInput.value = '';
+            });
+            
+            // Consultar ticket como cliente
+            consultarBtn.addEventListener('click', function() {
+                const numero = consultaNumero.value.trim().toUpperCase();
+                
+                if (!numero) {
+                    showNotification('Por favor ingresa un número de ticket', 'error');
+                    return;
+                }
+                
+                const ticket = tickets.find(t => t.id === numero);
+                
+                if (ticket) {
+                    // Mostrar información del ticket
+                    document.getElementById('consulta-ticket-number').textContent = ticket.id;
+                    document.getElementById('consulta-ticket-client').textContent = ticket.cliente;
+                    document.getElementById('consulta-ticket-phone').textContent = ticket.telefono;
+                    document.getElementById('consulta-ticket-bike').textContent = ticket.bicicleta;
+                    document.getElementById('consulta-ticket-problem').textContent = ticket.problema;
+                    
+                    // Estado con clase de color
+                    const statusElement = document.getElementById('consulta-ticket-status');
+                    statusElement.textContent = ticket.estado;
+                    statusElement.className = '';
+                    statusElement.classList.add(`status-${ticket.estado.toLowerCase().replace(' ', '-')}`);
+                    
+                    // Última actualización
+                    const ultimaActualizacion = ticket.historial[ticket.historial.length - 1];
+                    document.getElementById('consulta-ticket-update').textContent = 
+                        `${formatFecha(ultimaActualizacion.fecha)} - ${ultimaActualizacion.notas}`;
+                    
+                    resultadoConsulta.style.display = 'block';
+                    noEncontrado.style.display = 'none';
+                } else {
+                    resultadoConsulta.style.display = 'none';
+                    noEncontrado.style.display = 'block';
+                }
+            });
+            
+            // Generar nuevo ticket
+            ticketForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const nombre = document.getElementById('nombre').value;
+                const telefono = document.getElementById('telefono').value;
+                const email = document.getElementById('email').value;
+                const bicicleta = document.getElementById('bicicleta').value;
+                const problema = document.getElementById('problema').value;
+                const prioridad = document.getElementById('prioridad').value;
+                
+                const numeroTicket = generarNumeroTicket(tickets);
+                const fechaCreacion = new Date().toISOString();
+                
+                const nuevoTicket = {
+                    id: numeroTicket,
+                    cliente: nombre,
+                    telefono: telefono,
+                    email: email || 'No especificado',
+                    bicicleta: bicicleta,
+                    problema: problema,
+                    prioridad: prioridad,
+                    estado: 'En revisión',
+                    fechaCreacion: fechaCreacion,
+                    historial: [{
+                        estado: 'En revisión',
+                        fecha: fechaCreacion,
+                        notas: 'Ticket creado'
+                    }]
+                };
+                
+                tickets.push(nuevoTicket);
+                const guardado = guardarTickets(tickets);
+                
+                if (guardado) {
+                    // Mostrar el ticket generado
+                    ticketNumberSpan.textContent = numeroTicket;
+                    ticketClientSpan.textContent = nombre;
+                    ticketPhoneSpan.textContent = telefono;
+                    ticketProblemSpan.textContent = problema;
+                    
+                    ticketForm.reset();
+                    ticketForm.style.display = 'none';
+                    generatedTicketSection.style.display = 'block';
+                    
+                    actualizarTablaTickets();
+                    showNotification('Ticket generado exitosamente');
+                }
+            });
+            
+            // Imprimir ticket
+            printBtn.addEventListener('click', function() {
+                window.print();
+            });
+            
+            // Nuevo ticket
+            newTicketBtn.addEventListener('click', function() {
+                generatedTicketSection.style.display = 'none';
+                ticketForm.style.display = 'block';
+            });
+            
+            // Seleccionar/deseleccionar todos los tickets
+            selectAllCheckbox.addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('.ticket-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+                
+                if (this.checked) {
+                    selectedTickets = tickets.map(ticket => ticket.id);
+                    bulkActions.style.display = 'flex';
+                } else {
+                    selectedTickets = [];
+                    bulkActions.style.display = 'none';
+                }
+            });
+            
+            // Cancelar selección
+            cancelSelectionBtn.addEventListener('click', function() {
+                selectedTickets = [];
+                const checkboxes = document.querySelectorAll('.ticket-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                selectAllCheckbox.checked = false;
+                bulkActions.style.display = 'none';
+            });
+            
+            // Eliminar tickets seleccionados
+            deleteSelectedBtn.addEventListener('click', function() {
+                if (selectedTickets.length === 0) return;
+                
+                modalMessage.textContent = selectedTickets.length === 1 
+                    ? '¿Estás seguro que deseas eliminar el ticket seleccionado?' 
+                    : `¿Estás seguro que deseas eliminar los ${selectedTickets.length} tickets seleccionados?`;
+                
+                modal.style.display = 'block';
+            });
+            
+            // Modal - Cancelar
+            modalCancel.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+            
+            // Modal - Confirmar eliminación
+            modalConfirm.addEventListener('click', function() {
+                tickets = tickets.filter(ticket => !selectedTickets.includes(ticket.id));
+                const guardado = guardarTickets(tickets);
+                
+                if (guardado) {
+                    selectedTickets = [];
+                    selectAllCheckbox.checked = false;
+                    bulkActions.style.display = 'none';
+                    actualizarTablaTickets();
+                    modal.style.display = 'none';
+                    showNotification('Tickets eliminados exitosamente');
+                }
+            });
+            
+            // Cerrar modal al hacer clic fuera del contenido
+            window.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+            
+            // Actualizar tabla de tickets
+            function actualizarTablaTickets() {
+                ticketsTable.innerHTML = '';
+                
+                if (tickets.length === 0) {
+                    const row = ticketsTable.insertRow();
+                    const cell = row.insertCell();
+                    cell.colSpan = 6;
+                    cell.textContent = 'No hay tickets registrados';
+                    cell.style.textAlign = 'center';
+                    return;
+                }
+                
+                // Ordenar tickets por número (más nuevos primero)
+                const ticketsOrdenados = [...tickets].sort((a, b) => {
+                    return b.id.localeCompare(a.id);
+                });
+                
+                ticketsOrdenados.forEach(ticket => {
+                    const row = ticketsTable.insertRow();
+                    
+                    // Checkbox de selección
+                    const selectCell = row.insertCell();
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'ticket-checkbox select-checkbox';
+                    checkbox.dataset.id = ticket.id;
+                    selectCell.appendChild(checkbox);
+                    
+                    // Datos del ticket
+                    row.innerHTML += `
+                        <td>${ticket.id}</td>
+                        <td>${ticket.cliente}</td>
+                        <td>${ticket.bicicleta}</td>
+                        <td class="status-${ticket.estado.toLowerCase().replace(' ', '-')}">${ticket.estado}</td>
+                        <td>
+                            <button class="action-btn edit-btn" data-id="${ticket.id}">Editar</button>
+                            <button class="action-btn complete-btn" data-id="${ticket.id}">Completar</button>
+                            <button class="action-btn cancel-btn" data-id="${ticket.id}">Cancelar</button>
+                            <button class="action-btn delete-btn" data-id="${ticket.id}">Eliminar</button>
+                        </td>
+                    `;
+                });
+                
+                // Agregar eventos a los checkboxes
+                document.querySelectorAll('.ticket-checkbox').forEach(checkbox => {
+                    checkbox.addEventListener('change', function() {
+                        const ticketId = this.dataset.id;
+                        
+                        if (this.checked) {
+                            selectedTickets.push(ticketId);
+                        } else {
+                            selectedTickets = selectedTickets.filter(id => id !== ticketId);
+                            selectAllCheckbox.checked = false;
+                        }
+                        
+                        bulkActions.style.display = selectedTickets.length > 0 ? 'flex' : 'none';
+                    });
+                });
+                
+                // Agregar eventos a los botones
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const ticketId = this.getAttribute('data-id');
+                        editarTicket(ticketId);
+                    });
+                });
+                
+                document.querySelectorAll('.complete-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const ticketId = this.getAttribute('data-id');
+                        cambiarEstadoTicket(ticketId, 'Completado', 'Reparación finalizada');
+                    });
+                });
+                
+                document.querySelectorAll('.cancel-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const ticketId = this.getAttribute('data-id');
+                        cambiarEstadoTicket(ticketId, 'Cancelado', 'Ticket cancelado');
+                    });
+                });
+                
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const ticketId = this.getAttribute('data-id');
+                        modalMessage.textContent = '¿Estás seguro que deseas eliminar este ticket?';
+                        modal.style.display = 'block';
+                        
+                        // Configurar confirmación para eliminar solo este ticket
+                        modalConfirm.onclick = function() {
+                            tickets = tickets.filter(ticket => ticket.id !== ticketId);
+                            const guardado = guardarTickets(tickets);
+                            
+                            if (guardado) {
+                                actualizarTablaTickets();
+                                modal.style.display = 'none';
+                                showNotification('Ticket eliminado exitosamente');
+                            }
+                        };
+                    });
+                });
+                
+                // Restaurar el evento por defecto del modal confirm
+                modalConfirm.onclick = function() {
+                    tickets = tickets.filter(ticket => !selectedTickets.includes(ticket.id));
+                    const guardado = guardarTickets(tickets);
+                    
+                    if (guardado) {
+                        selectedTickets = [];
+                        selectAllCheckbox.checked = false;
+                        bulkActions.style.display = 'none';
+                        actualizarTablaTickets();
+                        modal.style.display = 'none';
+                        showNotification('Tickets eliminados exitosamente');
+                    }
+                };
+            }
+            
+            function editarTicket(ticketId) {
+                const ticket = tickets.find(t => t.id === ticketId);
+                if (!ticket) return;
+                
+                const nuevaNota = prompt('Ingrese notas adicionales para este ticket:', '');
+                if (nuevaNota === null) return;
+                
+                const nuevoEstado = prompt('Ingrese el nuevo estado:', ticket.estado);
+                if (nuevoEstado === null) return;
+                
+                ticket.estado = nuevoEstado;
+                ticket.historial.push({
+                    estado: nuevoEstado,
+                    fecha: new Date().toISOString(),
+                    notas: nuevaNota || 'Estado actualizado'
+                });
+                
+                const guardado = guardarTickets(tickets);
+                
+                if (guardado) {
+                    actualizarTablaTickets();
+                    showNotification('Ticket actualizado exitosamente');
+                }
+            }
+            
+            function cambiarEstadoTicket(ticketId, nuevoEstado, notas) {
+                const ticket = tickets.find(t => t.id === ticketId);
+                if (!ticket) return;
+                
+                ticket.estado = nuevoEstado;
+                ticket.historial.push({
+                    estado: nuevoEstado,
+                    fecha: new Date().toISOString(),
+                    notas: notas
+                });
+                
+                const guardado = guardarTickets(tickets);
+                
+                if (guardado) {
+                    actualizarTablaTickets();
+                    showNotification(`Ticket marcado como ${nuevoEstado.toLowerCase()}`);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
